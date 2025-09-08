@@ -4,6 +4,7 @@ void main() {
   runApp(MyApp());
 }
 
+
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
@@ -11,113 +12,187 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo New',
+      title: 'Steg 1- ToDo app',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 255, 255)),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
 
+class Task {
+  String name;
+  bool isDone;
+
+  Task({required this.name, this.isDone = false});
+}
+//den ovan annvänds för att skapa task 
+
 class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+List<Task> tasks = [
+  Task(name: 'Städa sovrum'),
+  Task(name: 'Släng soppor'),
+  Task(name: 'Tvätta vit tvätt'),
+  Task(name: 'Handla middag'),
+  Task(name: 'Plugga'),
+  Task(name: 'Gör matlådor'),
+];
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+appBar: AppBar(
+  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+  centerTitle: false,
+  title: Row(
+    children: const [
+      Text(
+        'My ToDo app',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-}
+    ],
+  ),
+),
+//ovan är koden för to do rubrik i appbar
+
+    drawer: Drawer(
+      width: 200,
+  child: ListView(
+    padding: EdgeInsets.zero,
+    children: const <Widget>[
+      DrawerHeader(
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 103, 192, 228),
+        ),
+        child: Text(
+          'Filter',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+          ),
+        ),
+      ),
+      ListTile(
+        title: Text('All'),
+      ),
+      ListTile(
+        title: Text('Done'),
+      ),
+        ListTile(
+          title: Text('AllDone'),
+      ),
+    ],
+  ),
+),
+//Ovan är koden för hamburgarmenyn 
+
+body: Column(
+  children: [
+    const SizedBox(height: 20), // Avstånd från AppBar
+    const Center(
+      child: Text(
+        'My Tasks',
+        style: TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+    const SizedBox(height: 10), // Litet avstånd till knappen
+    Center(
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      String newTaskName = '';
+
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Lägg till ny uppgift',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Uppgift',
+              ),
+              onChanged: (value) {
+                newTaskName = value;
+              },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                if (newTaskName.trim().isNotEmpty) {
+                  setState(() {
+                    tasks.add(Task(name: newTaskName));
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Lägg till'),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      );
+    },
+  );
+},
+
+        ),
+      ),
+    ),
+    const SizedBox(height: 40), // Avstånd till resten av innehållet
+Expanded(
+  child: ListView.builder(
+    itemCount: tasks.length,
+    itemBuilder: (context, index) {
+      return CheckboxListTile(
+        title: Text(tasks[index].name),
+        value: tasks[index].isDone,
+        onChanged: (bool? value) {
+          setState(() {
+            tasks[index].isDone = value!;
+          });
+        },
+      );
+    },
+  ),
+),
+  ],
+), // Column
+); // Scaffold
+  }  // <-- stänger build-metoden
+}    // <-- stänger _MyHomePageState-klassen
