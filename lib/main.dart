@@ -91,7 +91,7 @@ appBar: AppBar(
         title: Text('Done'),
       ),
         ListTile(
-          title: Text('AllDone'),
+          title: Text('Undone'),
       ),
     ],
   ),
@@ -178,17 +178,45 @@ body: Column(
 Expanded(
   child: ListView.builder(
     itemCount: tasks.length,
-    itemBuilder: (context, index) {
-      return CheckboxListTile(
-        title: Text(tasks[index].name),
-        value: tasks[index].isDone,
-        onChanged: (bool? value) {
-          setState(() {
-            tasks[index].isDone = value!;
-          });
-        },
-      );
-    },
+itemBuilder: (context, index) {
+  return Column(
+    children: [
+      ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: CheckboxListTile(
+                title: Text(tasks[index].name),
+                value: tasks[index].isDone,
+                onChanged: (bool? value) {
+                  setState(() {
+                    tasks[index].isDone = value!;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Color.fromARGB(255, 201, 196, 196)),
+              onPressed: () {
+                setState(() {
+                  tasks.removeAt(index);
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+      const Divider(
+        color: Color.fromARGB(255, 220, 220, 220), // Ljusgrå färg
+        thickness: 0.5, // Tunt streck
+        height: 1, // Litet mellanrum
+      ),
+    ],
+  );
+},
+
   ),
 ),
   ],
