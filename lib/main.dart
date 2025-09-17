@@ -1,4 +1,3 @@
-//Branch steg 1, kamratrespons 
 import 'package:flutter/material.dart';
 
 void main() {
