@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -23,11 +24,22 @@ class MyApp extends StatelessWidget {
 }
 
 class Task {
+  String id;
   String name;
   bool isDone;
 
-  Task({required this.name, this.isDone = false});
+Task({required this.id, required this.name, this.isDone = false});
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      id: json['id'].toString(),
+      name: json['title'],
+      isDone: json['done'],
+    );
+  }
 }
+
+
 //den ovan annvänds för att skapa task 
 
 class MyHomePage extends StatefulWidget {
@@ -39,9 +51,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 List<Task> tasks = [];
+
+@override
+void initState() {
+  super.initState();
+  fetchTasks();
+}
+
+Future<void> fetchTasks() async {
+  final taskList = await ApiService.getTasks();
+  setState(() {
+    tasks = taskList.map((json) => Task.fromJson(json)).toList();
+  });
+}
+
+
 String activeFilter = 'Undone'; // Standardfilter
 
-int hoveredIndex = -1;
+String hoveredIndex = '';
+
 
 
   @override
@@ -176,11 +204,12 @@ body: Column(
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (newTaskName.trim().isNotEmpty) {
-                  setState(() {
-                    tasks.add(Task(name: newTaskName));
-                  });
+                  await ApiService.addTask(newTaskName);
+                  if (!context.mounted) return;   // <-- lägg till
+                  await fetchTasks();
+                  if (!context.mounted) return;   // <-- lägg till
                   Navigator.pop(context);
                 }
               },
@@ -228,18 +257,15 @@ Expanded(
                           children: [
                             Checkbox(
                               value: filteredTasks[index].isDone,
-                              onChanged: (bool? value) {
-                              setState(() {
-                                // Hitta rätt task i den ursprungliga listan
+                              onChanged: (bool? value) async {
                                 final task = filteredTasks[index];
-                                final taskIndex = tasks.indexOf(task);
-                                if (taskIndex != -1) {
-                                  tasks[taskIndex].isDone = value!;
-                                }
-                              });
-                            },
+                                await ApiService.updateTask(task.id, value!);
+                                if (!context.mounted) return;   // <-- lägg till
+                                await fetchTasks();
+                              },
                               activeColor: Colors.green,
                             ),
+
                             Expanded(
                               child: Text(
                                 filteredTasks[index].name,
@@ -254,21 +280,25 @@ Expanded(
                         ),
                       ),
                       MouseRegion(
-                        onEnter: (_) => setState(() => hoveredIndex = index),
-                        onExit: (_) => setState(() => hoveredIndex = -1),
+                      onEnter: (_) => setState(() => hoveredIndex = filteredTasks[index].id),
+                      onExit: (_) => setState(() => hoveredIndex = ''),
+
                         child: IconButton(
-                          icon: Icon(
-                            Icons.delete,
-                           color: hoveredIndex == index
-                              ? Colors.red
-                              : const Color.fromARGB(255, 201, 196, 196),
-                       ),
-                       onPressed: () {
-                        setState(() {
-                          tasks.remove(filteredTasks[index]);
-                        });
-                       },
-                      ),
+                                icon: Icon(
+                                  Icons.delete,
+                                 color: hoveredIndex == filteredTasks[index].id
+                                    ? Colors.red
+                                    : const Color.fromARGB(255, 201, 196, 196),
+
+                                ),
+                                onPressed: () async {
+                                  final task = filteredTasks[index];
+                                  await ApiService.deleteTask(task.id);
+                                  if (!context.mounted) return;  // <-- lägg till
+                                  await fetchTasks();
+                                },
+                              ),
+
                     ),
                     ],
                   ),
