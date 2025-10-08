@@ -1,21 +1,20 @@
+//Steg3
 import 'package:flutter/material.dart';
 import 'api_service.dart';
-
 void main() {
   runApp(MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ToDo app',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 255, 255)),
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 255, 255)),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -23,24 +22,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// MODEL: Task
 class Task {
   String id;
   String name;
   bool isDone;
 
-Task({required this.id, required this.name, this.isDone = false});
+  Task({required this.id, required this.name, this.isDone = false});
 
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
       id: json['id'].toString(),
       name: json['title'],
-      isDone: json['done'],
+      isDone: json['done'] ?? false,
     );
   }
 }
 
-
-//den ovan annvänds för att skapa task 
+// HUVUDSIDAN
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -50,272 +49,321 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-List<Task> tasks = [];
+  List<Task> tasks = [];
+  String activeFilter = 'All';
+  String hoveredIndex = '';
 
-@override
-void initState() {
-  super.initState();
-  fetchTasks();
-}
+  @override
+  void initState() {
+    super.initState();
+    fetchTasks();
+  }
 
-Future<void> fetchTasks() async {
-  final taskList = await ApiService.getTasks();
-  setState(() {
-    tasks = taskList.map((json) => Task.fromJson(json)).toList();
-  });
-}
-
-
-String activeFilter = 'Undone'; // Standardfilter
-
-String hoveredIndex = '';
-
-
+  Future<void> fetchTasks() async {
+    final taskList = await ApiService.getTasks();
+    setState(() {
+      tasks = taskList.map((json) => Task.fromJson(json)).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     List<Task> filteredTasks = tasks.where((task) {
-  
-  if (activeFilter == 'All') return true;
-  if (activeFilter == 'Done') return task.isDone;
-  if (activeFilter == 'Undone') return !task.isDone;
-  return true;
-}).toList();
+      if (activeFilter == 'All') return true;
+      if (activeFilter == 'Done') return task.isDone;
+      if (activeFilter == 'Undone') return !task.isDone;
+      return true;
+    }).toList();
 
     return Scaffold(
-appBar: AppBar(
-  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-  centerTitle: false,
-  title: Row(
-    children: const [
-      Text(
-        'My ToDo app',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        centerTitle: false,
+        title: const Text(
+          'My ToDo app',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),
-    ],
-  ),
-),
-//ovan är koden för todo rubrik i appbar
 
-drawer: Drawer(
-  width: 200,
-  child: ListView(
-    padding: EdgeInsets.zero,
-    children: [
-      const DrawerHeader(
-        decoration: BoxDecoration(
-          color: Color.fromARGB(255, 103, 192, 228),
-        ),
-        child: Text(
-          'Filter',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-          ),
-        ),
-      ),
-      ListTile(
-        title: const Text('All'),
-        onTap: () {
-          setState(() {
-            activeFilter = 'All';
-          });
-          Navigator.pop(context); // Stänger menyn
-        },
-      ),
-      ListTile(
-        title: const Text('Done'),
-        onTap: () {
-          setState(() {
-            activeFilter = 'Done';
-          });
-          Navigator.pop(context);
-        },
-      ),
-      ListTile(
-        title: const Text('Undone'),
-        onTap: () {
-          setState(() {
-            activeFilter = 'Undone';
-          });
-          Navigator.pop(context);
-        },
-      ),
-    ],
-  ),
-),
-//Ovan är koden för hamburgarmenyn 
-
-body: Column(
-  children: [
-    const SizedBox(height: 20), // Avstånd från AppBar
-    const Center(
-      child: Text(
-        'My Tasks',
-        style: TextStyle(
-          fontSize: 30,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-    const SizedBox(height: 10), // Litet avstånd till knappen
-    Center(
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      String newTaskName = '';
-
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      
+      // HAMBURGARMENYN
+      
+      drawer: Drawer(
+        width: 200,
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            const Text(
-              'Lägg till ny uppgift',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Color.fromARGB(255, 103, 192, 228)),
+              child: Text('Filter',
+                  style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            TextField(
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Uppgift',
-              ),
-              onChanged: (value) {
-                newTaskName = value;
+            ListTile(
+              title: const Text('All'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const FilteredTasksPage(filter: 'All')),
+                );
               },
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                if (newTaskName.trim().isNotEmpty) {
-                  await ApiService.addTask(newTaskName);
-                  if (!context.mounted) return;   // <-- lägg till
-                  await fetchTasks();
-                  if (!context.mounted) return;   // <-- lägg till
-                  Navigator.pop(context);
-                }
+            ListTile(
+              title: const Text('Done'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const FilteredTasksPage(filter: 'Done')),
+                );
               },
-              child: const Text('Lägg till'),
             ),
-            const SizedBox(height: 20),
+            ListTile(
+              title: const Text('Undone'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const FilteredTasksPage(filter: 'Undone')),
+                );
+              },
+            ),
           ],
         ),
-      );
-    },
-  );
-},
-
-        ),
       ),
-    ),
-    const SizedBox(height: 40), // Avstånd till resten av innehållet
-Expanded(
-  child: tasks.isEmpty
-      ? Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 20),
+
+      
+      // INNEHÅLL
+      
+      body: Column(
+        children: [
+          const SizedBox(height: 20),
+          const Center(
             child: Text(
-              'No tasks yet.\nPress the plus button to add something you want to do.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w300,
-                color: Colors.grey,
+              'My Tasks',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddTaskPage()),
+                  );
+                  if (result == true) {
+                    await fetchTasks(); // Uppdatera när man lagt till något
+                  }
+                },
               ),
             ),
           ),
-        )
-      : ListView.builder(
-          itemCount: filteredTasks.length,
-          itemBuilder: (context, index) {
-            return Column(
-              children: [
-                ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Checkbox(
-                              value: filteredTasks[index].isDone,
-                              onChanged: (bool? value) async {
-                                final task = filteredTasks[index];
-                                await ApiService.updateTask(task.id, value!);
-                                if (!context.mounted) return;   // <-- lägg till
-                                await fetchTasks();
-                              },
-                              activeColor: Colors.green,
-                            ),
-
-                            Expanded(
-                              child: Text(
-                                filteredTasks[index].name,
-                                style: TextStyle(
-                                  decoration: filteredTasks[index].isDone
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                ),
-                              ),
-                            ),
-                          ],
+          const SizedBox(height: 30),
+          Expanded(
+            child: filteredTasks.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 20),
+                      child: Text(
+                        'No tasks yet.\nPress the plus button to add something you want to do.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey,
                         ),
                       ),
-                      MouseRegion(
-                      onEnter: (_) => setState(() => hoveredIndex = filteredTasks[index].id),
-                      onExit: (_) => setState(() => hoveredIndex = ''),
-
-                        child: IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                 color: hoveredIndex == filteredTasks[index].id
-                                    ? Colors.red
-                                    : const Color.fromARGB(255, 201, 196, 196),
-
-                                ),
-                                onPressed: () async {
-                                  final task = filteredTasks[index];
-                                  await ApiService.deleteTask(task.id);
-                                  if (!context.mounted) return;  // <-- lägg till
-                                  await fetchTasks();
-                                },
-                              ),
-
                     ),
-                    ],
+                  )
+                : ListView.builder(
+                    itemCount: filteredTasks.length,
+                    itemBuilder: (context, index) {
+                      final task = filteredTasks[index];
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Checkbox(
+                                        value: task.isDone,
+                                        onChanged: (bool? value) async {
+                                          await ApiService.updateTask(
+                                              task.id, value!);
+                                          if (!context.mounted) return;
+                                          await fetchTasks();
+                                        },
+                                        activeColor: Colors.green,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          task.name,
+                                          style: TextStyle(
+                                            decoration: task.isDone
+                                                ? TextDecoration.lineThrough
+                                                : TextDecoration.none,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                MouseRegion(
+                                  onEnter: (_) =>
+                                      setState(() => hoveredIndex = task.id),
+                                  onExit: (_) =>
+                                      setState(() => hoveredIndex = ''),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: hoveredIndex == task.id
+                                          ? Colors.red
+                                          : const Color.fromARGB(
+                                              255, 201, 196, 196),
+                                    ),
+                                    onPressed: () async {
+                                      await ApiService.deleteTask(task.id);
+                                      if (!context.mounted) return;
+                                      await fetchTasks();
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(
+                            color: Color.fromARGB(255, 220, 220, 220),
+                            thickness: 0.5,
+                            height: 1,
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                ),
-                const Divider(
-                  color: Color.fromARGB(255, 220, 220, 220),
-                  thickness: 0.5,
-                  height: 1,
-                ),
-              ],
-            );
-          },
-        ),
-),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-  ],
-), // Column
-); // Scaffold
-  }  // <-- stänger build-metoden
-}    // <-- stänger _MyHomePageState-klassen
+
+// NY SIDA FÖR ATT LÄGGA TILL UPPGIFT
+class AddTaskPage extends StatefulWidget {
+  const AddTaskPage({super.key});
+
+  @override
+  State<AddTaskPage> createState() => _AddTaskPageState();
+}
+
+class _AddTaskPageState extends State<AddTaskPage> {
+  final TextEditingController _controller = TextEditingController();
+
+  Future<void> _addTask() async {
+    final name = _controller.text.trim();
+    if (name.isNotEmpty) {
+      await ApiService.addTask(name);
+      if (!context.mounted) return;
+      Navigator.pop(context, true); 
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Lägg till ny uppgift')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Uppgift'),
+              onSubmitted: (_) => _addTask(),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addTask,
+              child: const Text('Lägg till'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// NY SIDA FÖR FILTRERING
+
+class FilteredTasksPage extends StatefulWidget {
+  final String filter;
+  const FilteredTasksPage({super.key, required this.filter});
+
+  @override
+  State<FilteredTasksPage> createState() => _FilteredTasksPageState();
+}
+
+class _FilteredTasksPageState extends State<FilteredTasksPage> {
+  List<Task> tasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTasks();
+  }
+
+  Future<void> fetchTasks() async {
+    final taskList = await ApiService.getTasks();
+    setState(() {
+      tasks = taskList.map((json) => Task.fromJson(json)).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Task> filtered = tasks.where((task) {
+      if (widget.filter == 'All') return true;
+      if (widget.filter == 'Done') return task.isDone;
+      if (widget.filter == 'Undone') return !task.isDone;
+      return true;
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Filter: ${widget.filter}')),
+      body: filtered.isEmpty
+          ? const Center(child: Text('Inga uppgifter hittades'))
+          : ListView.builder(
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final task = filtered[index];
+                return ListTile(
+                  title: Text(task.name),
+                  trailing: Icon(
+                    task.isDone ? Icons.check_circle : Icons.circle_outlined,
+                    color: task.isDone ? Colors.green : Colors.grey,
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
